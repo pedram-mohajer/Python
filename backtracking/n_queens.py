@@ -7,83 +7,80 @@
  diagonal lines.
 
 """
+
 from __future__ import annotations
 
-solution = []
+solution: list[list[int]] = []
 
 
-def is_safe(board: list[list[int]], row: int, column: int) -> bool:
+def is_safe(board: list[int], row: int, column: int) -> bool:
     """
-    This function returns a boolean value True if it is safe to place a queen there
+    This function returns a boolean value True if
+    it is safe to place a queen at the given row and column
     considering the current state of the board.
 
-    Parameters:
-    board (2D matrix): The chessboard
-    row, column: Coordinates of the cell on the board
+    :param board: The chessboard represented as a 1D list.
+    :param row, column: Coordinates of the cell on the board.
+    :return: True if it is safe to place a queen, False otherwise.
 
-    Returns:
-    Boolean Value
-
+    >>> is_safe([0, 2, -1, -1], 2, 1)
+    False
+    >>> is_safe([0, -1, -1, -1], 1, 2)
+    True
     """
-
-    n = len(board)  # Size of the board
-
-    # Check if there is any queen in the same row, column,
-    # left upper diagonal, and right upper diagonal
-    return (
-        all(board[i][j] != 1 for i, j in zip(range(row, -1, -1), range(column, n)))
-        and all(
-            board[i][j] != 1 for i, j in zip(range(row, -1, -1), range(column, -1, -1))
-        )
-        and all(board[i][j] != 1 for i, j in zip(range(row, n), range(column, n)))
-        and all(board[i][j] != 1 for i, j in zip(range(row, n), range(column, -1, -1)))
-    )
+    for i in range(row):
+        if (
+            board[i] == column
+            or board[i] - i == column - row
+            or board[i] + i == column + row
+        ):
+            return False
+    return True
 
 
-def solve(board: list[list[int]], row: int) -> bool:
+def solve(board: list[int], row: int) -> None:
     """
-    This function creates a state space tree and calls the safe function until it
-    receives a False Boolean and terminates that branch and backtracks to the next
-    possible solution branch.
+    Attempts to place queens on the board starting from the given row.
+
+    :param board: The chessboard represented as a 1D list.
+    :return row: The starting row from which to place queens.
     """
     if row >= len(board):
-        """
-        If the row number exceeds N, we have a board with a successful combination
-        and that combination is appended to the solution list and the board is printed.
-        """
-        solution.append(board)
+        solution.append(board.copy())
         printboard(board)
         print()
-        return True
+        return
+
     for i in range(len(board)):
-        """
-        For every row, it iterates through each column to check if it is feasible to
-        place a queen there.
-        If all the combinations for that particular branch are successful, the board is
-        reinitialized for the next possible combination.
-        """
         if is_safe(board, row, i):
-            board[row][i] = 1
+            board[row] = i
             solve(board, row + 1)
-            board[row][i] = 0
-    return False
+            board[row] = -1  # Reset the state
 
 
-def printboard(board: list[list[int]]) -> None:
+def printboard(board: list[int]) -> None:
     """
-    Prints the boards that have a successful combination.
+    Prints the current state of the board.
+
+    :param board: The chessboard represented as a 1D list.
+
+    >>> printboard([0, 2, -1, -1])
+    Q . . .
+    . . Q .
+    . . . .
+    . . . .
     """
-    for i in range(len(board)):
-        for j in range(len(board)):
-            if board[i][j] == 1:
-                print("Q", end=" ")  # Queen is present
-            else:
-                print(".", end=" ")  # Empty cell
-        print()
+    n = len(board)
+    for i in range(n):
+        print(" ".join("Q" if board[i] == j else "." for j in range(n)))
 
 
-# Number of queens (e.g., n=8 for an 8x8 board)
-n = 8
-board = [[0 for i in range(n)] for j in range(n)]
-solve(board, 0)
-print("The total number of solutions are:", len(solution))
+if __name__ == "__main__":
+    # Number of queens (e.g., n=8 for an 8x8 board)
+    n = 8
+    board = [0 for _ in range(n)]  # Place queens in the first column
+    print("Initial board:")
+    printboard(board)
+    print("\nSolutions:")
+    solve(board, 1)  # Start solving from the second row
+    print("The total number of solutions are:", len(solution))
